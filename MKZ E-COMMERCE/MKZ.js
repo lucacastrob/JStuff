@@ -21,9 +21,9 @@ const getTask = (id) => db.collection('tasks').doc(id).get();
 
 const onGetTasks = (callback) => db.collection('tasks').onSnapshot(callback);
 
-const deleteTasks = id => db.collection('tasks').doc(id).delete();      
+const deleteTasks = id => db.collection('tasks').doc(id).delete(); 
 
-window.addEventListener('DOMContentLoaded' , async(e) => {
+window.addEventListener('DOMContentLoaded' , async(e) => { //ACTUALIZAR TASKS HTML
     onGetTasks(querySnapshot => {
         taskContainer.innerHTML = "";
         querySnapshot.forEach(doc =>{
@@ -44,6 +44,10 @@ window.addEventListener('DOMContentLoaded' , async(e) => {
             btnsDelete.forEach(btn => {
                 btn.addEventListener('click', async(e) => {
                     await deleteTasks(e.target.dataset.id);
+                    editStatus = false;
+                    taskForm['task-title'].value = "";
+                    taskForm['task-description'].value = "";
+                    taskForm['btn-task-form'].innerText = 'Save';
                 });
             });
             
@@ -57,7 +61,7 @@ window.addEventListener('DOMContentLoaded' , async(e) => {
                     const task = doc.data();
                     taskForm['task-title'].value = task.title;
                     taskForm['task-description'].value = task.description;
-                    taskForm['btn-task-form'].innerText = 'Update'
+                    taskForm['btn-task-form'].innerText = 'Update';
 
                 })
             })
@@ -65,23 +69,37 @@ window.addEventListener('DOMContentLoaded' , async(e) => {
     });
 });
 
-taskForm.addEventListener("submit", async(e) => {
+taskForm.addEventListener("submit", async(e) => { //SAVE BUTTON
     e.preventDefault();
 
     const title = taskForm["task-title"];
     const description = taskForm["task-description"];
     if(!editStatus)
     {
-        await saveTask(title.value, description.value);
+        if(title.value != "" && description.value!= "")
+        {
+            await saveTask(title.value, description.value);
+        }
+        else
+        {
+            alert("No pueden haber campos vacios.");
+        }
     }
     else
     {
-       await updateTask(idTask, {
-           title: title.value,
-           description: description.value
-       });
-       taskForm['btn-task-form'].innerText = 'Save'
-       editStatus = false;
+        if(title.value != "" && description.value!= "")
+        {
+            await updateTask(idTask, {
+            title: title.value,
+            description: description.value
+            });
+        }
+        else
+        {
+            alert("No pueden haber campos sin datos.");
+        }
+        taskForm['btn-task-form'].innerText = 'Save'
+        editStatus = false;
     }
     await getTasks();
     taskForm.reset();
